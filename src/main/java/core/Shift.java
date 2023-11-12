@@ -6,27 +6,29 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
 public class Shift {
-    private String shiftId;
+    private String id;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
-    private Employee assignedEmployee;
-    private Map<String, Object> additionalAttributes;
 
-    public Shift(String shiftId, LocalDateTime startTime, LocalDateTime endTime) {
-        this.shiftId = shiftId;
-        this.startTime = startTime;
-        this.endTime = endTime;
-        this.additionalAttributes = new HashMap<>();
+    // Constructor using string inputs for start and end time, parsing them into LocalDateTime objects
+    public Shift(String id, String start, String end) {
+        this.id = id;
+        DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+        this.startTime = LocalDateTime.parse(start, formatter);
+        this.endTime = LocalDateTime.parse(end, formatter);
     }
 
-    // Getters and setters for fixed attributes
-    public String getShiftId() {
-        return shiftId;
+    // Getters and Setters
+    public String getId() {
+        return id;
     }
 
-    public void setShiftId(String shiftId) {
-        this.shiftId = shiftId;
+    public void setId(String id) {
+        this.id = id;
     }
 
     public LocalDateTime getStartTime() {
@@ -45,36 +47,22 @@ public class Shift {
         this.endTime = endTime;
     }
 
-    public Employee getAssignedEmployee() {
-        return assignedEmployee;
+    // Helper method to check if a shift occurs on a given day
+    public boolean isOnDay(String day) {
+        DateTimeFormatter dayFormatter = DateTimeFormatter.ISO_LOCAL_DATE;
+        return this.startTime.toLocalDate().toString().equals(day);
     }
 
-    public void setAssignedEmployee(Employee assignedEmployee) {
-        this.assignedEmployee = assignedEmployee;
-    }
-
-    // Methods to manage additional attributes
-    public void setAdditionalAttribute(String key, Object value) {
-        additionalAttributes.put(key, value);
-    }
-
-    public Object getAdditionalAttribute(String key) {
-        return additionalAttributes.get(key);
-    }
-
-    public boolean hasAdditionalAttribute(String key) {
-        return additionalAttributes.containsKey(key);
-    }
-
-    public Object removeAdditionalAttribute(String key) {
-        return additionalAttributes.remove(key);
-    }
-
-    // Example usage of a toString method to print out the shift's properties
+    // Override toString() for easier logging and debugging
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("Shift{shiftId='").append(shiftId).append("', startTime=").append(startTime).append(", endTime=").append(endTime).append(", assignedEmployee=").append(assignedEmployee != null ? assignedEmployee.getName() : "none").append(", additionalAttributes=").append(additionalAttributes).append('}');
-        return sb.toString();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("uuuu-MM-dd'T'HH:mm");
+        return String.format("Shift ID: %s, Start Time: %s, End Time: %s", 
+                getId(), 
+                getStartTime().format(formatter), 
+                getEndTime().format(formatter));
     }
+
+    // Other methods can be added as required to facilitate shift management
 }
+

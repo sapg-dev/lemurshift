@@ -1,71 +1,102 @@
 package core;
 
+import java.time.DayOfWeek;
+import java.time.LocalDateTime;
+import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 public class Employee {
-    private String id; // You can keep certain common fields as fixed attributes
+    private String id;
+    
     private String name;
-    private String lastname;// Another common field
-    //Because employee characteristics varies greatly based on organization
-    private Map<String, Object> attributes; // A map to hold any number of additional attributes
+    private Set<DayOfWeek> daysOff; // Days when the employee is not available to work
+    private int maxConsecutiveShifts; // The maximum number of consecutive shifts allowed
+    private LocalDateTime lastShiftEndTime; // The end time of the last shift worked
+    private int currentConsecutiveShiftCount; // The current count of consecutive shifts worked
 
-    public Employee(String id, String name, String lastname) {
+    public Employee(String id, String name, Set<DayOfWeek> daysOff, int maxConsecutiveShifts) {
         this.id = id;
         this.name = name;
-        this.lastname = lastname;
-        this.attributes = new HashMap<>();
+        this.daysOff = daysOff;
+        this.maxConsecutiveShifts = maxConsecutiveShifts;
+        this.lastShiftEndTime = null;
+        this.currentConsecutiveShiftCount = 0;
     }
 
-    // Getters and setters for fixed attributes
+    // Standard getters and setters
+
     public String getId() {
         return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
     }
 
     public String getName() {
         return name;
     }
 
+    public Set<DayOfWeek> getDaysOff() {
+        return new HashSet<>(daysOff); // Return a copy to prevent outside modification
+    }
+
+    public int getMaxConsecutiveShifts() {
+        return maxConsecutiveShifts;
+    }
+
+    public LocalDateTime getLastShiftEndTime() {
+        return lastShiftEndTime;
+    }
+
+    public int getCurrentConsecutiveShiftCount() {
+        return currentConsecutiveShiftCount;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
     public void setName(String name) {
         this.name = name;
     }
+
+    public void setDaysOff(Set<DayOfWeek> daysOff) {
+        this.daysOff = new HashSet<>(daysOff); // Store a copy to prevent outside modification
+    }
+
+    public void setMaxConsecutiveShifts(int maxConsecutiveShifts) {
+        this.maxConsecutiveShifts = maxConsecutiveShifts;
+    }
+
+    public void setLastShiftEndTime(LocalDateTime lastShiftEndTime) {
+        this.lastShiftEndTime = lastShiftEndTime;
+    }
+
+    public void setCurrentConsecutiveShiftCount(int currentConsecutiveShiftCount) {
+        this.currentConsecutiveShiftCount = currentConsecutiveShiftCount;
+    }
+
+    // Method to check if the employee is available for a given shift
+    public boolean isAvailable(LocalDateTime shiftTime) {
+        DayOfWeek shiftDay = shiftTime.getDayOfWeek();
+        return !daysOff.contains(shiftDay) && (lastShiftEndTime == null || !shiftTime.isBefore(lastShiftEndTime.plusHours(12)));
+    }
     
-
-    public String getlastName() {
-        return lastname;
+    public boolean isForcedToWork(Shift shift) {
+        boolean isDayOff = daysOff.contains(shift.getStartTime().getDayOfWeek());
+        boolean isWithinRestPeriod = lastShiftEndTime != null && shift.getStartTime().isBefore(lastShiftEndTime.plusHours(12));
+        return isDayOff || isWithinRestPeriod;
     }
 
-    public void setlastName(String lastname) {
-        this.lastname = lastname;
+    // Method to update employee's shift end time and consecutive shift count
+    public void updateShiftEndAndCount(LocalDateTime shiftEnd) {
+        this.lastShiftEndTime = shiftEnd;
+        this.currentConsecutiveShiftCount++;
+        // Check if the employee needs a reset on their consecutive shift count
+        if (this.currentConsecutiveShiftCount > this.maxConsecutiveShifts) {
+            this.currentConsecutiveShiftCount = 0; // or handle as per policy
+        }
     }
 
-
-    // Methods to manage dynamic attributes
-    public void setAttribute(String key, Object value) {
-        attributes.put(key, value);
-    }
-
-    public Object getAttribute(String key) {
-        return attributes.get(key);
-    }
-
-    public boolean hasAttribute(String key) {
-        return attributes.containsKey(key);
-    }
-
-    public Object removeAttribute(String key) {
-        return attributes.remove(key);
-    }
-
-    // Example usage of a toString method to print out the employee's properties
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("Employee{id='").append(id).append("', name='").append(name).append("', attributes=").append(attributes).append('}');
-        return sb.toString();
-    }
+    // Additional logic and methods as necessary
 }
